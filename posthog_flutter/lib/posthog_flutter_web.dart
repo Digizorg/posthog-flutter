@@ -301,6 +301,63 @@ class PosthogFlutterWeb extends PosthogFlutterPlatformInterface {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> getSurveys({
+    bool forceReload = false,
+  }) async {
+    final result = await handleWebMethodCall(
+      MethodCall('getSurveys', {'forceReload': forceReload}),
+    );
+    if (result is List) {
+      return result
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getActiveMatchingSurveys({
+    bool forceReload = false,
+  }) async {
+    final result = await handleWebMethodCall(
+      MethodCall('getActiveMatchingSurveys', {'forceReload': forceReload}),
+    );
+    if (result is List) {
+      return result
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+    return [];
+  }
+
+  @override
+  Future<void> captureSurveyShown({required String surveyId}) async {
+    return handleWebMethodCall(
+      MethodCall('captureSurveyShown', {'surveyId': surveyId}),
+    );
+  }
+
+  @override
+  Future<void> captureSurveySent({
+    required String surveyId,
+    required Map<String, Object> surveyResponses,
+  }) async {
+    return handleWebMethodCall(
+      MethodCall('captureSurveySent', {
+        'surveyId': surveyId,
+        'surveyResponses': surveyResponses,
+      }),
+    );
+  }
+
+  @override
+  Future<void> captureSurveyDismissed({required String surveyId}) async {
+    return handleWebMethodCall(
+      MethodCall('captureSurveyDismissed', {'surveyId': surveyId}),
+    );
+  }
+
+  @override
   Future<void> captureException({
     required Object error,
     StackTrace? stackTrace,

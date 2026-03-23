@@ -755,4 +755,102 @@ class PosthogFlutterIO extends PosthogFlutterPlatformInterface {
       return false;
     }
   }
+
+  @override
+  Future<List<Map<String, dynamic>>> getSurveys({
+    bool forceReload = false,
+  }) async {
+    if (!isSupportedPlatform()) {
+      return [];
+    }
+
+    try {
+      final result = await _methodChannel.invokeMethod('getSurveys', {
+        'forceReload': forceReload,
+      });
+      if (result is List) {
+        return result
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+      return [];
+    } on PlatformException catch (exception) {
+      printIfDebug('Exception on getSurveys: $exception');
+      return [];
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getActiveMatchingSurveys({
+    bool forceReload = false,
+  }) async {
+    if (!isSupportedPlatform()) {
+      return [];
+    }
+
+    try {
+      final result =
+          await _methodChannel.invokeMethod('getActiveMatchingSurveys', {
+        'forceReload': forceReload,
+      });
+      if (result is List) {
+        return result
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      }
+      return [];
+    } on PlatformException catch (exception) {
+      printIfDebug('Exception on getActiveMatchingSurveys: $exception');
+      return [];
+    }
+  }
+
+  @override
+  Future<void> captureSurveyShown({required String surveyId}) async {
+    if (!isSupportedPlatform()) {
+      return;
+    }
+
+    try {
+      await _methodChannel.invokeMethod('captureSurveyShown', {
+        'surveyId': surveyId,
+      });
+    } on PlatformException catch (exception) {
+      printIfDebug('Exception on captureSurveyShown: $exception');
+    }
+  }
+
+  @override
+  Future<void> captureSurveySent({
+    required String surveyId,
+    required Map<String, Object> surveyResponses,
+  }) async {
+    if (!isSupportedPlatform()) {
+      return;
+    }
+
+    try {
+      await _methodChannel.invokeMethod('captureSurveySent', {
+        'surveyId': surveyId,
+        'surveyResponses': surveyResponses,
+      });
+    } on PlatformException catch (exception) {
+      printIfDebug('Exception on captureSurveySent: $exception');
+    }
+  }
+
+  @override
+  Future<void> captureSurveyDismissed({required String surveyId}) async {
+    if (!isSupportedPlatform()) {
+      return;
+    }
+
+    try {
+      await _methodChannel.invokeMethod('captureSurveyDismissed', {
+        'surveyId': surveyId,
+      });
+    } on PlatformException catch (exception) {
+      printIfDebug('Exception on captureSurveyDismissed: $exception');
+    }
+  }
 }

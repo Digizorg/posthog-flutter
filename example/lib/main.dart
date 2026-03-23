@@ -628,6 +628,90 @@ class InitialScreenState extends State<InitialScreen> {
                 const Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text(
+                    "Surveys",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                Wrap(
+                  alignment: WrapAlignment.spaceEvenly,
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        final surveys = await _posthogFlutterPlugin
+                            .getSurveys();
+                        setState(() {
+                          _result = 'Surveys: ${surveys.length}';
+                        });
+                      },
+                      child: const Text("getSurveys"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final surveys = await _posthogFlutterPlugin
+                            .getActiveMatchingSurveys(forceReload: true);
+                        setState(() {
+                          _result = 'Active surveys: ${surveys.length}';
+                        });
+                      },
+                      child: const Text("getActiveMatchingSurveys"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await _posthogFlutterPlugin.captureSurveyShown(
+                          surveyId: 'test-survey-id',
+                        );
+                        if (mounted && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Survey shown event captured'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text("captureSurveyShown"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await _posthogFlutterPlugin.captureSurveySent(
+                          surveyId: 'test-survey-id',
+                          surveyResponses: {'\$survey_response': 'Great!'},
+                        );
+                        if (mounted && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Survey sent event captured'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text("captureSurveySent"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        await _posthogFlutterPlugin.captureSurveyDismissed(
+                          surveyId: 'test-survey-id',
+                        );
+                        if (mounted && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Survey dismissed event captured'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text("captureSurveyDismissed"),
+                    ),
+                  ],
+                ),
+                const Divider(),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text(
                     "Data result",
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),

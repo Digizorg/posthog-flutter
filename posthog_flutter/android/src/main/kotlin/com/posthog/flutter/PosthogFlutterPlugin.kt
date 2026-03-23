@@ -211,6 +211,26 @@ class PosthogFlutterPlugin :
                 handleSurveyAction(call, result)
             }
 
+            "getSurveys" -> {
+                getSurveys(result)
+            }
+
+            "getActiveMatchingSurveys" -> {
+                getActiveMatchingSurveys(result)
+            }
+
+            "captureSurveyShown" -> {
+                captureSurveyShown(call, result)
+            }
+
+            "captureSurveySent" -> {
+                captureSurveySent(call, result)
+            }
+
+            "captureSurveyDismissed" -> {
+                captureSurveyDismissed(call, result)
+            }
+
             else -> {
                 result.notImplemented()
             }
@@ -763,6 +783,95 @@ class PosthogFlutterPlugin :
                 channel.invokeMethod(method, arguments)
             }
         }
+    }
+
+    // MARK: - Custom Survey Public APIs
+
+    private fun getSurveys(result: Result) {
+        try {
+            PostHog.getSurveys { surveys ->
+                val list = surveys.map { survey -> surveyToMap(survey) }
+                Handler(Looper.getMainLooper()).post {
+                    result.success(list)
+                }
+            }
+        } catch (e: Throwable) {
+            result.error("PosthogFlutterException", e.localizedMessage, null)
+        }
+    }
+
+    private fun getActiveMatchingSurveys(result: Result) {
+        try {
+            PostHog.getActiveMatchingSurveys { surveys ->
+                val list = surveys.map { survey -> surveyToMap(survey) }
+                Handler(Looper.getMainLooper()).post {
+                    result.success(list)
+                }
+            }
+        } catch (e: Throwable) {
+            result.error("PosthogFlutterException", e.localizedMessage, null)
+        }
+    }
+
+    private fun captureSurveyShown(
+        call: MethodCall,
+        result: Result,
+    ) {
+        try {
+            val surveyId: String = call.argument("surveyId")!!
+            PostHog.captureSurveyShown(surveyId)
+            result.success(null)
+        } catch (e: Throwable) {
+            result.error("PosthogFlutterException", e.localizedMessage, null)
+        }
+    }
+
+    private fun captureSurveySent(
+        call: MethodCall,
+        result: Result,
+    ) {
+        try {
+            val surveyId: String = call.argument("surveyId")!!
+            val surveyResponses: Map<String, Any> = call.argument("surveyResponses") ?: emptyMap()
+            PostHog.captureSurveySent(surveyId, surveyResponses)
+            result.success(null)
+        } catch (e: Throwable) {
+            result.error("PosthogFlutterException", e.localizedMessage, null)
+        }
+    }
+
+    private fun captureSurveyDismissed(
+        call: MethodCall,
+        result: Result,
+    ) {
+        try {
+            val surveyId: String = call.argument("surveyId")!!
+            PostHog.captureSurveyDismissed(surveyId)
+            result.success(null)
+        } catch (e: Throwable) {
+            result.error("PosthogFlutterException", e.localizedMessage, null)
+        }
+    }
+
+    private fun surveyToMap(survey: com.posthog.surveys.Survey): Map<String, Any?> {
+        return mapOf(
+            "id" to survey.id,
+            "name" to survey.name,
+            "description" to survey.description,
+            "type" to survey.type.value,
+            "questions" to survey.questions.map { question ->
+                mapOf(
+                    "type" to question.type?.value,
+                    "question" to question.question,
+                    "description" to question.description,
+                    "optional" to question.optional,
+                    "buttonText" to question.buttonText,
+                )
+            },
+            "startDate" to survey.startDate?.time,
+            "endDate" to survey.endDate?.time,
+            "currentIteration" to survey.currentIteration,
+        )
     }
 
     // MARK: - Survey Action Handling

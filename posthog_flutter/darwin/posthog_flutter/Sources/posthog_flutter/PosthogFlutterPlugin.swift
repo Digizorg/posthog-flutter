@@ -248,6 +248,16 @@ public class PosthogFlutterPlugin: NSObject, FlutterPlugin {
                 // surveys only supported on iOS
                 result(nil)
             #endif
+        case "getSurveys":
+            getSurveys(call, result: result)
+        case "getActiveMatchingSurveys":
+            getActiveMatchingSurveys(call, result: result)
+        case "captureSurveyShown":
+            captureSurveyShown(call, result: result)
+        case "captureSurveySent":
+            captureSurveySent(call, result: result)
+        case "captureSurveyDismissed":
+            captureSurveyDismissed(call, result: result)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -805,6 +815,114 @@ extension PosthogFlutterPlugin {
 
     private func getSessionId(result: @escaping FlutterResult) {
         result(PostHogSDK.shared.getSessionId())
+    }
+
+    // MARK: - Custom Survey Public APIs
+
+    private func getSurveys(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any]
+        let forceReload = args?["forceReload"] as? Bool ?? false
+        PostHogSDK.shared.getSurveys(forceReload: forceReload) { surveys in
+            let list = surveys.map { self.surveyToDict($0) }
+            DispatchQueue.main.async {
+                result(list)
+            }
+        }
+    }
+
+    private func getActiveMatchingSurveys(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any]
+        let forceReload = args?["forceReload"] as? Bool ?? false
+        PostHogSDK.shared.getActiveMatchingSurveys(forceReload: forceReload) { surveys in
+            let list = surveys.map { self.surveyToDict($0) }
+            DispatchQueue.main.async {
+                result(list)
+            }
+        }
+    }
+
+    private func captureSurveyShown(
+        _ call: FlutterMethodCall,
+        result: @escaping FlutterResult
+    ) {
+        if let args = call.arguments as? [String: Any],
+           let surveyId = args["surveyId"] as? String
+        {
+            PostHogSDK.shared.captureSurveyShown(surveyId: surveyId)
+            result(nil)
+        } else {
+            _badArgumentError(result)
+        }
+    }
+
+    private func captureSurveySent(
+        _ call: FlutterMethodCall,
+        result: @escaping FlutterResult
+    ) {
+        if let args = call.arguments as? [String: Any],
+           let surveyId = args["surveyId"] as? String,
+           let surveyResponses = args["surveyResponses"] as? [String: Any]
+        {
+            PostHogSDK.shared.captureSurveySent(surveyId: surveyId, surveyResponses: surveyResponses)
+            result(nil)
+        } else {
+            _badArgumentError(result)
+        }
+    }
+
+    private func captureSurveyDismissed(
+        _ call: FlutterMethodCall,
+        result: @escaping FlutterResult
+    ) {
+        if let args = call.arguments as? [String: Any],
+           let surveyId = args["surveyId"] as? String
+        {
+            PostHogSDK.shared.captureSurveyDismissed(surveyId: surveyId)
+            result(nil)
+        } else {
+            _badArgumentError(result)
+        }
+    }
+
+    private func surveyToDict(_ survey: PostHogSurvey) -> [String: Any?] {
+        return [
+            "id": survey.id,
+            "name": survey.name,
+            "type": surveyTypeToString(survey.type),
+            "questions": survey.questions.map { question -> [String: Any?] in
+                [
+                    "type": questionTypeToString(question),
+                    "question": question.question,
+                    "description": question.description,
+                    "optional": question.optional,
+                    "buttonText": question.buttonText,
+                    "originalQuestionIndex": question.originalQuestionIndex,
+                ]
+            },
+            "startDate": survey.startDate?.timeIntervalSince1970,
+            "endDate": survey.endDate?.timeIntervalSince1970,
+            "currentIteration": survey.currentIteration,
+        ]
+    }
+
+    private func surveyTypeToString(_ type: PostHogSurveyType) -> String {
+        switch type {
+        case .popover: return "popover"
+        case .widget: return "widget"
+        case .api: return "api"
+        case let .unknown(type): return type
+        }
+    }
+
+    private func questionTypeToString(_ question: PostHogSurveyQuestion) -> String {
+        switch question {
+        case .open: return "open"
+        case .link: return "link"
+        case .rating: return "rating"
+        case .singleChoice: return "single_choice"
+        case .multipleChoice: return "multiple_choice"
+        case let .unknown(type): return type
+        }
     }
 
     // Return bad Arguments error

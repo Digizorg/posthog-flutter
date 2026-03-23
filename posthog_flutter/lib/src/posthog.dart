@@ -388,5 +388,48 @@ class Posthog {
   /// Returns whether session replay is currently active.
   Future<bool> isSessionReplayActive() => _posthog.isSessionReplayActive();
 
+  /// Returns all surveys for the current project.
+  ///
+  /// [forceReload] - If true, bypasses the cache and fetches fresh data.
+  /// Supported on iOS and Web. Ignored on Android.
+  Future<List<Map<String, dynamic>>> getSurveys({
+    bool forceReload = false,
+  }) =>
+      _posthog.getSurveys(forceReload: forceReload);
+
+  /// Returns surveys that match the current user's targeting criteria.
+  ///
+  /// [forceReload] - If true, bypasses the cache and fetches fresh data.
+  /// Supported on iOS and Web. Ignored on Android.
+  Future<List<Map<String, dynamic>>> getActiveMatchingSurveys({
+    bool forceReload = false,
+  }) =>
+      _posthog.getActiveMatchingSurveys(forceReload: forceReload);
+
+  /// Captures a "survey shown" event for the given survey.
+  ///
+  /// - [surveyId] The ID of the survey that was shown.
+  Future<void> captureSurveyShown({required String surveyId}) =>
+      _posthog.captureSurveyShown(surveyId: surveyId);
+
+  /// Captures a "survey sent" event with the user's responses.
+  ///
+  /// - [surveyId] The ID of the survey that was completed.
+  /// - [surveyResponses] A map of response keys to response values.
+  Future<void> captureSurveySent({
+    required String surveyId,
+    required Map<String, Object> surveyResponses,
+  }) =>
+      _posthog.captureSurveySent(
+        surveyId: surveyId,
+        surveyResponses: surveyResponses,
+      );
+
+  /// Captures a "survey dismissed" event for the given survey.
+  ///
+  /// - [surveyId] The ID of the survey that was dismissed.
+  Future<void> captureSurveyDismissed({required String surveyId}) =>
+      _posthog.captureSurveyDismissed(surveyId: surveyId);
+
   Posthog._internal();
 }

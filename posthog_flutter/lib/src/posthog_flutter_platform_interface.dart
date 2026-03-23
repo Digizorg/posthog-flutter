@@ -119,6 +119,35 @@ abstract class PosthogFlutterPlatformInterface extends PlatformInterface {
     throw UnimplementedError('showSurvey() has not been implemented.');
   }
 
+  Future<List<Map<String, dynamic>>> getSurveys({bool forceReload = false}) {
+    throw UnimplementedError('getSurveys() has not been implemented.');
+  }
+
+  Future<List<Map<String, dynamic>>> getActiveMatchingSurveys({
+    bool forceReload = false,
+  }) {
+    throw UnimplementedError(
+      'getActiveMatchingSurveys() has not been implemented.',
+    );
+  }
+
+  Future<void> captureSurveyShown({required String surveyId}) {
+    throw UnimplementedError('captureSurveyShown() has not been implemented.');
+  }
+
+  Future<void> captureSurveySent({
+    required String surveyId,
+    required Map<String, Object> surveyResponses,
+  }) {
+    throw UnimplementedError('captureSurveySent() has not been implemented.');
+  }
+
+  Future<void> captureSurveyDismissed({required String surveyId}) {
+    throw UnimplementedError(
+      'captureSurveyDismissed() has not been implemented.',
+    );
+  }
+
   Future<void> group({
     required String groupType,
     required String groupKey,

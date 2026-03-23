@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_dynamic_calls, avoid_annotating_with_dynamic
 
+import 'dart:async';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 
@@ -49,6 +50,9 @@ extension PostHogExtension on PostHog {
   external void startSessionRecording();
   external void stopSessionRecording();
   external bool sessionRecordingStarted();
+  external void getSurveys(JSFunction callback, [JSBoolean? forceReload]);
+  external void getActiveMatchingSurveys(JSFunction callback,
+      [JSBoolean? forceReload]);
   external SessionManager? get sessionManager;
   // ignore: non_constant_identifier_names
   external void _overrideSDKInfo(JSAny sdkName, JSAny sdkVersion);
@@ -586,6 +590,60 @@ Future<dynamic> handleWebMethodCall(MethodCall call) async {
       posthog?.capture(
         stringToJSAny('\$exception'),
         mapToJSAny(properties),
+        null,
+      );
+      break;
+    case 'getSurveys':
+      final completer = Completer<dynamic>();
+      final forceReload = args['forceReload'] as bool? ?? false;
+      final callback = (JSArray surveys) {
+        final list = surveys.toDart
+            .map((e) => (e as JSObject).dartify() as Map)
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+        completer.complete(list);
+      }.toJS;
+      posthog?.getSurveys(callback, forceReload.toJS);
+      return completer.future;
+    case 'getActiveMatchingSurveys':
+      final completer = Completer<dynamic>();
+      final forceReload = args['forceReload'] as bool? ?? false;
+      final callback = (JSArray surveys) {
+        final list = surveys.toDart
+            .map((e) => (e as JSObject).dartify() as Map)
+            .map((e) => Map<String, dynamic>.from(e))
+            .toList();
+        completer.complete(list);
+      }.toJS;
+      posthog?.getActiveMatchingSurveys(callback, forceReload.toJS);
+      return completer.future;
+    case 'captureSurveyShown':
+      final surveyId = args['surveyId'] as String;
+      posthog?.capture(
+        stringToJSAny('survey shown'),
+        mapToJSAny({'\$survey_id': surveyId}),
+        null,
+      );
+      break;
+    case 'captureSurveySent':
+      final surveyId = args['surveyId'] as String;
+      final surveyResponses =
+          safeMapConversion(args['surveyResponses']);
+      final properties = <String, dynamic>{
+        '\$survey_id': surveyId,
+        ...surveyResponses,
+      };
+      posthog?.capture(
+        stringToJSAny('survey sent'),
+        mapToJSAny(properties),
+        null,
+      );
+      break;
+    case 'captureSurveyDismissed':
+      final surveyId = args['surveyId'] as String;
+      posthog?.capture(
+        stringToJSAny('survey dismissed'),
+        mapToJSAny({'\$survey_id': surveyId}),
         null,
       );
       break;
