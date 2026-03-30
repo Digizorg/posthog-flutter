@@ -212,11 +212,11 @@ class PosthogFlutterPlugin :
             }
 
             "getSurveys" -> {
-                getSurveys(result)
+                getSurveys(call, result)
             }
 
             "getActiveMatchingSurveys" -> {
-                getActiveMatchingSurveys(result)
+                getActiveMatchingSurveys(call, result)
             }
 
             "captureSurveyShown" -> {
@@ -787,9 +787,10 @@ class PosthogFlutterPlugin :
 
     // MARK: - Custom Survey Public APIs
 
-    private fun getSurveys(result: Result) {
+    private fun getSurveys(call: MethodCall, result: Result) {
         try {
-            PostHog.getSurveys { surveys ->
+            val forceReload = call.argument<Boolean>("forceReload") ?: false
+            PostHog.getSurveys(forceReload = forceReload) { surveys ->
                 val list = surveys.map { survey -> surveyToMap(survey) }
                 Handler(Looper.getMainLooper()).post {
                     result.success(list)
@@ -800,9 +801,10 @@ class PosthogFlutterPlugin :
         }
     }
 
-    private fun getActiveMatchingSurveys(result: Result) {
+    private fun getActiveMatchingSurveys(call: MethodCall, result: Result) {
         try {
-            PostHog.getActiveMatchingSurveys { surveys ->
+            val forceReload = call.argument<Boolean>("forceReload") ?: false
+            PostHog.getActiveMatchingSurveys(forceReload = forceReload) { surveys ->
                 val list = surveys.map { survey -> surveyToMap(survey) }
                 Handler(Looper.getMainLooper()).post {
                     result.success(list)

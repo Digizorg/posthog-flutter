@@ -391,7 +391,6 @@ class Posthog {
   /// Returns all surveys for the current project.
   ///
   /// [forceReload] - If true, bypasses the cache and fetches fresh data.
-  /// Supported on iOS and Web. Ignored on Android.
   Future<List<Map<String, dynamic>>> getSurveys({
     bool forceReload = false,
   }) =>
@@ -400,7 +399,6 @@ class Posthog {
   /// Returns surveys that match the current user's targeting criteria.
   ///
   /// [forceReload] - If true, bypasses the cache and fetches fresh data.
-  /// Supported on iOS and Web. Ignored on Android.
   Future<List<Map<String, dynamic>>> getActiveMatchingSurveys({
     bool forceReload = false,
   }) =>
