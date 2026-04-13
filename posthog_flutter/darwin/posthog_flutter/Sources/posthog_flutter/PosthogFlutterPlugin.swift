@@ -885,7 +885,7 @@ extension PosthogFlutterPlugin {
     }
 
     private func surveyToDict(_ survey: PostHogSurvey) -> [String: Any?] {
-        return [
+        var dict: [String: Any?] = [
             "id": survey.id,
             "name": survey.name,
             "type": surveyTypeToString(survey.type),
@@ -903,6 +903,73 @@ extension PosthogFlutterPlugin {
             "endDate": survey.endDate?.timeIntervalSince1970,
             "currentIteration": survey.currentIteration,
         ]
+        if let conditions = survey.conditions {
+            dict["conditions"] = conditionsToDict(conditions)
+        }
+        return dict
+    }
+
+    private func conditionsToDict(_ conditions: PostHogSurveyConditions) -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let url = conditions.url { dict["url"] = url }
+        if let urlMatchType = conditions.urlMatchType {
+            dict["urlMatchType"] = matchTypeToString(urlMatchType)
+        }
+        if let selector = conditions.selector { dict["selector"] = selector }
+        if let deviceTypes = conditions.deviceTypes { dict["deviceTypes"] = deviceTypes }
+        if let deviceTypesMatchType = conditions.deviceTypesMatchType {
+            dict["deviceTypesMatchType"] = matchTypeToString(deviceTypesMatchType)
+        }
+        if let days = conditions.seenSurveyWaitPeriodInDays {
+            dict["seenSurveyWaitPeriodInDays"] = days
+        }
+        if let events = conditions.events {
+            dict["events"] = eventConditionsToDict(events)
+        }
+        if let actions = conditions.actions {
+            dict["actions"] = actionsConditionsToDict(actions)
+        }
+        return dict
+    }
+
+    private func eventConditionsToDict(_ events: PostHogSurveyEventConditions) -> [String: Any] {
+        var dict: [String: Any] = [:]
+        if let repeatedActivation = events.repeatedActivation {
+            dict["repeatedActivation"] = repeatedActivation
+        }
+        dict["values"] = events.values.map { eventConditionToDict($0) }
+        return dict
+    }
+
+    private func actionsConditionsToDict(_ actions: PostHogSurveyActionsConditions) -> [String: Any] {
+        return ["values": actions.values.map { eventConditionToDict($0) }]
+    }
+
+    private func eventConditionToDict(_ condition: PostHogEventCondition) -> [String: Any] {
+        var dict: [String: Any] = ["name": condition.name]
+        if let filters = condition.propertyFilters {
+            dict["propertyFilters"] = filters.mapValues { filter in
+                [
+                    "values": filter.values,
+                    "operator": matchTypeToString(filter.matchOperator),
+                ] as [String: Any]
+            }
+        }
+        return dict
+    }
+
+    private func matchTypeToString(_ matchType: PostHogSurveyMatchType) -> String {
+        switch matchType {
+        case .regex: return "regex"
+        case .notRegex: return "not_regex"
+        case .exact: return "exact"
+        case .isNot: return "is_not"
+        case .iContains: return "icontains"
+        case .notIContains: return "not_icontains"
+        case .gt: return "gt"
+        case .lt: return "lt"
+        case let .unknown(value): return value
+        }
     }
 
     private func surveyTypeToString(_ type: PostHogSurveyType) -> String {

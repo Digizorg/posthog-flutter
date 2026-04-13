@@ -2,6 +2,20 @@
     import Foundation
     import PostHog
 
+    private func surveyMatchTypeToString(_ matchType: PostHogSurveyMatchType) -> String {
+        switch matchType {
+        case .regex: return "regex"
+        case .notRegex: return "not_regex"
+        case .exact: return "exact"
+        case .isNot: return "is_not"
+        case .iContains: return "icontains"
+        case .notIContains: return "not_icontains"
+        case .gt: return "gt"
+        case .lt: return "lt"
+        case let .unknown(value): return value
+        }
+    }
+
     extension PostHogDisplaySurvey {
         // Convert the survey object to a dictionary for communication with the Dart layer
         // Native platform model -> Dictionary -> Dart model
@@ -109,6 +123,22 @@
             }
             if let endDate = endDate {
                 dict["endDate"] = Int64(endDate.timeIntervalSince1970 * 1000) // to milliseconds since epoch
+            }
+            if let conditions = conditions {
+                var conditionsDict: [String: Any] = [:]
+                if let url = conditions.url { conditionsDict["url"] = url }
+                if let urlMatchType = conditions.urlMatchType {
+                    conditionsDict["urlMatchType"] = surveyMatchTypeToString(urlMatchType)
+                }
+                if let selector = conditions.selector { conditionsDict["selector"] = selector }
+                if let deviceTypes = conditions.deviceTypes { conditionsDict["deviceTypes"] = deviceTypes }
+                if let deviceTypesMatchType = conditions.deviceTypesMatchType {
+                    conditionsDict["deviceTypesMatchType"] = surveyMatchTypeToString(deviceTypesMatchType)
+                }
+                if let days = conditions.seenSurveyWaitPeriodInDays {
+                    conditionsDict["seenSurveyWaitPeriodInDays"] = days
+                }
+                dict["conditions"] = conditionsDict
             }
 
             return dict

@@ -93,5 +93,17 @@ fun PostHogDisplaySurvey.toMap(): Map<String, Any?> {
         map["endDate"] = date.time
     }
 
+    // Add conditions if available
+    conditions?.let { cond ->
+        val conditionsMap = mutableMapOf<String, Any?>()
+        cond.url?.let { conditionsMap["url"] = it }
+        cond.urlMatchType?.let { conditionsMap["urlMatchType"] = it.value }
+        cond.selector?.let { conditionsMap["selector"] = it }
+        cond.deviceTypes?.let { conditionsMap["deviceTypes"] = it }
+        cond.deviceTypesMatchType?.let { conditionsMap["deviceTypesMatchType"] = it.value }
+        cond.seenSurveyWaitPeriodInDays?.let { conditionsMap["seenSurveyWaitPeriodInDays"] = it }
+        map["conditions"] = conditionsMap
+    }
+
     return map
 }

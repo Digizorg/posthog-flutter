@@ -856,7 +856,7 @@ class PosthogFlutterPlugin :
     }
 
     private fun surveyToMap(survey: com.posthog.surveys.Survey): Map<String, Any?> {
-        return mapOf(
+        val map = mutableMapOf<String, Any?>(
             "id" to survey.id,
             "name" to survey.name,
             "description" to survey.description,
@@ -874,6 +874,35 @@ class PosthogFlutterPlugin :
             "endDate" to survey.endDate?.time,
             "currentIteration" to survey.currentIteration,
         )
+        survey.conditions?.let { cond ->
+            map["conditions"] = conditionsToMap(cond)
+        }
+        return map
+    }
+
+    private fun conditionsToMap(cond: com.posthog.surveys.SurveyConditions): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        cond.url?.let { map["url"] = it }
+        cond.urlMatchType?.let { map["urlMatchType"] = it.value }
+        cond.selector?.let { map["selector"] = it }
+        cond.deviceTypes?.let { map["deviceTypes"] = it }
+        cond.deviceTypesMatchType?.let { map["deviceTypesMatchType"] = it.value }
+        cond.seenSurveyWaitPeriodInDays?.let { map["seenSurveyWaitPeriodInDays"] = it }
+        cond.events?.let { events ->
+            val eventsMap = mutableMapOf<String, Any?>()
+            events.repeatedActivation?.let { eventsMap["repeatedActivation"] = it }
+            eventsMap["values"] = events.values.map { ev ->
+                val evMap = mutableMapOf<String, Any?>("name" to ev.name)
+                ev.propertyFilters?.let { filters ->
+                    evMap["propertyFilters"] = filters.mapValues { (_, pf) ->
+                        mapOf("values" to pf.values, "operator" to pf.operator.value)
+                    }
+                }
+                evMap
+            }
+            map["events"] = eventsMap
+        }
+        return map
     }
 
     // MARK: - Survey Action Handling

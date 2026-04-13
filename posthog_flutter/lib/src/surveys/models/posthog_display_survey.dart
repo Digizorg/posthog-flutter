@@ -9,6 +9,7 @@ import 'posthog_display_rating_question.dart';
 import 'posthog_display_choice_question.dart';
 import 'posthog_display_survey_appearance.dart';
 import 'posthog_display_survey_text_content_type.dart';
+import 'posthog_survey_conditions.dart';
 
 /// Main survey model containing metadata and questions
 @immutable
@@ -128,6 +129,13 @@ class PostHogDisplaySurvey {
       endDate = DateTime.fromMillisecondsSinceEpoch(dict['endDate'] as int);
     }
 
+    PostHogSurveyConditions? conditions;
+    if (dict['conditions'] != null) {
+      conditions = PostHogSurveyConditions.fromDict(
+        Map<String, dynamic>.from(dict['conditions'] as Map),
+      );
+    }
+
     return PostHogDisplaySurvey(
       id: dict['id'] as String,
       name: dict['name'] as String,
@@ -135,6 +143,7 @@ class PostHogDisplaySurvey {
       appearance: appearance,
       startDate: startDate,
       endDate: endDate,
+      conditions: conditions,
     );
   }
 
@@ -145,6 +154,7 @@ class PostHogDisplaySurvey {
     this.appearance,
     this.startDate,
     this.endDate,
+    this.conditions,
   });
 
   final String id;
@@ -153,4 +163,7 @@ class PostHogDisplaySurvey {
   final PostHogDisplaySurveyAppearance? appearance;
   final DateTime? startDate;
   final DateTime? endDate;
+
+  /// Conditions for displaying the survey (e.g. CSS selector, URL matching)
+  final PostHogSurveyConditions? conditions;
 }
